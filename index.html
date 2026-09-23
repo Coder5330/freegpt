@@ -399,14 +399,6 @@
     renderMessages();
   }
 
-  function showThinking() {
-    const row = buildMessageRow("assistant", "Thinking…");
-    row.id = "thinkingRow";
-    messagesEl.appendChild(row);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-  function hideThinking() { document.getElementById("thinkingRow")?.remove(); }
-
   function showError(msg) {
     const p = document.createElement("p");
     p.className = "error";
@@ -447,7 +439,14 @@
     renderAll();
 
     setSending(true);
-    showThinking();
+
+    // Add an empty bot bubble that fills in as tokens stream in.
+    const botRow = buildMessageRow("assistant", "");
+    const botTextEl = botRow.querySelector(".msgText");
+    messagesEl.appendChild(botRow);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    let fullReply = "";
 
     try {
       const res = await fetch("/api/chat", {
@@ -455,14 +454,50 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: chat.messages, model: currentModel }),
       });
-      const data = await res.json();
-      hideThinking();
-      if (!res.ok) throw new Error(data.error || "Request failed");
-      chat.messages.push({ role: "assistant", content: data.reply });
+
+      if (!res.ok || !res.body) {
+        let errMsg = "Request failed";
+        try { errMsg = (await res.json()).error || errMsg; } catch (_) {}
+        throw new Error(errMsg);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // keep any incomplete line for next chunk
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payload = trimmed.slice(5).trim();
+          if (payload === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(payload);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullReply += delta;
+              botTextEl.textContent = fullReply;
+              messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+          } catch (_) {
+            // ignore partial/non-JSON keep-alive lines
+          }
+        }
+      }
+
+      if (!fullReply) throw new Error("No response received");
+
+      chat.messages.push({ role: "assistant", content: fullReply });
       saveState();
-      renderMessages();
     } catch (e) {
-      hideThinking();
+      botRow.remove();
       showError(e.message);
     } finally {
       setSending(false);
