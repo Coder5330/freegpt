@@ -15,63 +15,81 @@
   }
   #app { display: flex; height: 100vh; width: 100%; }
 
-  /* ---- Icon rail ---- */
-  #rail {
-    width: 64px;
+  /* ================= Sidebar ================= */
+  #sidebar {
     flex-shrink: 0;
     background: #fff;
     border-right: 1px solid #ececec;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 16px 0;
-  }
-  .railBtn {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: none;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #333;
-    margin-bottom: 14px;
-  }
-  .railBtn:hover { background: #f0f0f0; }
-  .railBtn.active { background: #ececec; }
-  .railBtn svg { width: 20px; height: 20px; }
-  #railSpacer { flex: 1; }
-  #railAvatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #d9d9e3;
+    transition: width 0.15s ease;
+    overflow: hidden;
   }
 
-  /* ---- Slide-out chat list panel ---- */
-  #panel {
-    width: 0;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: #f7f7f8;
-    border-right: 1px solid #ececec;
-    transition: width 0.15s ease;
-  }
-  #panel.open { width: 240px; }
-  #panelInner { width: 240px; padding: 12px 8px; }
-  #panelTitle { font-size: 12px; color: #8e8ea0; padding: 6px 8px 10px; text-transform: uppercase; letter-spacing: .04em; }
-  .chatItem {
-    display: flex;
+  /* --- Collapsed (icon rail) --- */
+  #sidebar.collapsed { width: 64px; }
+  #sidebar.collapsed #expandedView { display: none; }
+  #sidebar.collapsed #railView { display: flex; }
+
+  #railView {
+    display: none;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 1px;
+    padding: 16px 0;
+    height: 100%;
+    width: 64px;
+  }
+  .iconBtn {
+    width: 36px; height: 36px; border: none; background: none; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #333; margin-bottom: 14px; flex-shrink: 0;
+  }
+  .iconBtn:hover { background: #f0f0f0; }
+  .iconBtn svg { width: 20px; height: 20px; }
+  #railSpacer { flex: 1; }
+  .avatarCircle {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #2563eb; color: #fff; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* --- Expanded --- */
+  #sidebar.expanded { width: 260px; }
+  #sidebar.expanded #railView { display: none; }
+  #sidebar.expanded #expandedView { display: flex; }
+
+  #expandedView {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    width: 260px;
+  }
+  #expandedTop {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px;
+  }
+  #brandName { font-weight: 700; font-size: 16px; }
+  #expandedTop .iconBtn { margin-bottom: 0; }
+  #topIcons { display: flex; gap: 2px; }
+
+  #newChatRow {
+    display: flex; align-items: center; gap: 10px;
+    margin: 4px 12px 10px; padding: 9px 10px;
+    border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
+    background: #f0f0f0;
+  }
+  #newChatRow:hover { background: #e7e7e7; }
+  #newChatRow svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+  #recentsLabel {
+    font-size: 12px; color: #9b9ba1; padding: 10px 16px 6px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  #chatList { flex: 1; overflow-y: auto; padding: 0 8px; }
+  .chatItem {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 14px;
+    color: #333; margin-bottom: 1px;
   }
   .chatItem:hover { background: #ececec; }
   .chatItem.active { background: #e5e5ea; font-weight: 600; }
@@ -83,38 +101,25 @@
   .chatItem:hover .deleteBtn { visibility: visible; }
   .deleteBtn:hover { color: #e35d5d; }
 
-  /* ---- Main chat panel ---- */
+  #expandedBottom {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-top: 1px solid #ececec;
+  }
+  #expandedBottom .who { font-size: 14px; font-weight: 600; }
+  #expandedBottom .plan { font-size: 12px; color: #9b9ba1; }
+
+  /* ================= Main chat panel ================= */
   #chat { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 
   #centerStage {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 24px;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 0 24px;
   }
-  #greeting {
-    font-size: 30px;
-    color: #1e1e1e;
-    margin-bottom: 28px;
-    text-align: center;
-  }
+  #greeting { font-size: 30px; color: #1e1e1e; margin-bottom: 28px; text-align: center; }
 
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    display: none;
-  }
+  #messages { flex: 1; overflow-y: auto; display: none; }
   .msgRow { padding: 22px 0; }
-  .msgInner {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-  }
+  .msgInner { max-width: 700px; margin: 0 auto; padding: 0 24px; display: flex; gap: 14px; align-items: flex-start; }
   .avatar {
     width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
@@ -122,26 +127,17 @@
   }
   .avatar.user { background: #6b6b76; }
   .avatar.bot { background: #10a37f; }
-  .msgText {
-    line-height: 1.65; font-size: 15.5px; color: #1e1e1e;
-    white-space: pre-wrap; word-break: break-word; padding-top: 3px;
-  }
+  .msgText { line-height: 1.65; font-size: 15.5px; color: #1e1e1e; white-space: pre-wrap; word-break: break-word; padding-top: 3px; }
   .error { max-width: 700px; margin: 8px auto; padding: 0 24px; color: #c0392b; font-size: 14px; }
 
-  /* ---- Pill input, used both centered and docked at bottom ---- */
   #inputWrap { width: 100%; max-width: 720px; padding: 0 24px; }
-  #inputRow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid #e3e3e6;
-    border-radius: 28px;
-    padding: 10px 12px 10px 18px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    background: #fff;
+  #inputRow, #inputRowBottom {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid #e3e3e6; border-radius: 28px;
+    padding: 10px 12px 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); background: #fff;
   }
-  #inputRow:focus-within { border-color: #c7c7cf; }
-  #plusBtn {
+  #inputRow:focus-within, #inputRowBottom:focus-within { border-color: #c7c7cf; }
+  .plusBtn {
     width: 28px; height: 28px; border-radius: 50%; border: 1px solid #d9d9e3;
     background: #fff; color: #444; font-size: 16px; cursor: pointer;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -151,42 +147,69 @@
     font-size: 15px; font-family: inherit; line-height: 1.4;
     max-height: 160px; padding: 6px 0; background: transparent;
   }
-  #thinkBtn {
-    display: flex; align-items: center; gap: 6px;
-    border: none; background: none; color: #8e8ea0;
-    font-size: 14px; cursor: default; flex-shrink: 0; padding: 6px 4px;
+  .thinkBtn {
+    display: flex; align-items: center; gap: 6px; border: none; background: none;
+    color: #8e8ea0; font-size: 14px; cursor: default; flex-shrink: 0; padding: 6px 4px;
   }
-  #sendBtn {
+  .sendBtn {
     width: 32px; height: 32px; border-radius: 50%; border: none;
     background: #b4b4bc; color: #fff; cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; font-size: 15px;
   }
-  #sendBtn.ready { background: #1e1e1e; }
-  #sendBtn:disabled { cursor: default; }
+  .sendBtn.ready { background: #1e1e1e; }
+  .sendBtn:disabled { cursor: default; }
   #bottomInputArea { display: none; padding: 14px 24px 20px; }
   .hint { text-align: center; font-size: 12px; color: #b0b0b6; margin-top: 8px; }
 </style>
 </head>
 <body>
   <div id="app">
-    <div id="rail">
-      <button class="railBtn" id="newChatBtn" title="New chat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-      </button>
-      <button class="railBtn" id="searchBtn" title="Search chats">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
-      </button>
-      <button class="railBtn" id="listBtn" title="Chats">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.5 8.5 0 0 1-4-1L3 20l1.1-3.3a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 4h.1A8.4 8.4 0 0 1 21 11.4Z"/></svg>
-      </button>
-      <div id="railSpacer"></div>
-      <div id="railAvatar"></div>
-    </div>
+    <div id="sidebar" class="collapsed">
 
-    <div id="panel">
-      <div id="panelInner">
-        <div id="panelTitle">Chats</div>
+      <!-- Collapsed icon rail -->
+      <div id="railView">
+        <button class="iconBtn" id="railToggleBtn" title="Expand sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+        </button>
+        <button class="iconBtn" id="railSearchBtn" title="Search chats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+        </button>
+        <button class="iconBtn" id="railNewChatBtn" title="New chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        </button>
+        <div id="railSpacer"></div>
+        <div class="avatarCircle">You</div>
+      </div>
+
+      <!-- Expanded panel -->
+      <div id="expandedView">
+        <div id="expandedTop">
+          <div id="brandName">GPT Chat</div>
+          <div id="topIcons">
+            <button class="iconBtn" id="expSearchBtn" title="Search chats">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+            </button>
+            <button class="iconBtn" id="expToggleBtn" title="Collapse sidebar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="newChatRow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+          New chat
+        </div>
+
+        <div id="recentsLabel">Recents</div>
         <div id="chatList"></div>
+
+        <div id="expandedBottom">
+          <div class="avatarCircle">You</div>
+          <div>
+            <div class="who">You</div>
+            <div class="plan">Local chat</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -195,10 +218,10 @@
         <div id="greeting">Ready when you are.</div>
         <div id="inputWrap">
           <div id="inputRow">
-            <button id="plusBtn">+</button>
+            <button class="plusBtn">+</button>
             <textarea id="input" rows="1" placeholder="Ask anything"></textarea>
-            <button id="thinkBtn">🧠 Think</button>
-            <button id="sendBtn">↑</button>
+            <button class="thinkBtn">🧠 Think</button>
+            <button class="sendBtn" id="sendBtn">↑</button>
           </div>
         </div>
       </div>
@@ -206,12 +229,12 @@
       <div id="messages"></div>
 
       <div id="bottomInputArea">
-        <div id="inputWrapBottom" style="max-width:720px;margin:0 auto;">
-          <div id="inputRowBottom" style="display:flex;align-items:center;gap:10px;border:1px solid #e3e3e6;border-radius:28px;padding:10px 12px 10px 18px;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
-            <button id="plusBtn2" style="width:28px;height:28px;border-radius:50%;border:1px solid #d9d9e3;background:#fff;color:#444;font-size:16px;cursor:pointer;flex-shrink:0;">+</button>
-            <textarea id="inputBottom" rows="1" placeholder="Ask anything" style="flex:1;resize:none;border:none;outline:none;font-size:15px;font-family:inherit;line-height:1.4;max-height:160px;padding:6px 0;"></textarea>
-            <button id="thinkBtn2" style="display:flex;align-items:center;gap:6px;border:none;background:none;color:#8e8ea0;font-size:14px;cursor:default;flex-shrink:0;padding:6px 4px;">🧠 Think</button>
-            <button id="sendBtn2" style="width:32px;height:32px;border-radius:50%;border:none;background:#1e1e1e;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;">↑</button>
+        <div style="max-width:720px;margin:0 auto;">
+          <div id="inputRowBottom">
+            <button class="plusBtn">+</button>
+            <textarea id="inputBottom" rows="1" placeholder="Ask anything"></textarea>
+            <button class="thinkBtn">🧠 Think</button>
+            <button class="sendBtn" id="sendBtn2">↑</button>
           </div>
         </div>
         <div class="hint">Enter to send · Shift+Enter for a new line</div>
@@ -223,7 +246,7 @@
   const SYSTEM_PROMPT = "You are a helpful assistant";
   const STORAGE_KEY = "gpt-chats-v1";
 
-  function newChat() {
+  function newChatObj() {
     return {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       title: "New chat",
@@ -239,7 +262,7 @@
         if (parsed.chats && parsed.chats.length) return parsed;
       }
     } catch (e) { console.warn("Couldn't read saved chats:", e); }
-    const chat = newChat();
+    const chat = newChatObj();
     return { chats: [chat], activeId: chat.id };
   }
 
@@ -249,23 +272,19 @@
   }
 
   let state = loadState();
-  let panelOpen = false;
 
   function getActiveChat() {
     return state.chats.find(c => c.id === state.activeId) || state.chats[0];
   }
 
-  const panelEl = document.getElementById("panel");
-  const listBtn = document.getElementById("listBtn");
+  const sidebarEl = document.getElementById("sidebar");
   const chatListEl = document.getElementById("chatList");
   const centerStage = document.getElementById("centerStage");
   const messagesEl = document.getElementById("messages");
   const bottomInputArea = document.getElementById("bottomInputArea");
 
-  function togglePanel(force) {
-    panelOpen = force !== undefined ? force : !panelOpen;
-    panelEl.classList.toggle("open", panelOpen);
-    listBtn.classList.toggle("active", panelOpen);
+  function setSidebar(expanded) {
+    sidebarEl.className = expanded ? "expanded" : "collapsed";
   }
 
   function renderSidebar() {
@@ -332,9 +351,7 @@
     messagesEl.style.display = "block";
     bottomInputArea.style.display = "block";
 
-    for (const m of visible) {
-      messagesEl.appendChild(buildMessageRow(m.role, m.content));
-    }
+    for (const m of visible) messagesEl.appendChild(buildMessageRow(m.role, m.content));
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -361,8 +378,16 @@
 
   function deleteChat(id) {
     state.chats = state.chats.filter(c => c.id !== id);
-    if (state.chats.length === 0) state.chats = [newChat()];
+    if (state.chats.length === 0) state.chats = [newChatObj()];
     if (state.activeId === id) state.activeId = state.chats[0].id;
+    saveState();
+    renderAll();
+  }
+
+  function startNewChat() {
+    const chat = newChatObj();
+    state.chats.unshift(chat);
+    state.activeId = chat.id;
     saveState();
     renderAll();
   }
@@ -410,15 +435,12 @@
     document.getElementById("sendBtn2").disabled = disabled;
   }
 
-  // ---- Wire up both input boxes (centered + docked) ----
   function wireInput(textareaId, sendBtnId) {
     const ta = document.getElementById(textareaId);
     const btn = document.getElementById(sendBtnId);
     ta.addEventListener("input", () => {
       autoResize(ta);
-      if (btn.id === "sendBtn") {
-        btn.classList.toggle("ready", ta.value.trim().length > 0);
-      }
+      if (btn.id === "sendBtn") btn.classList.toggle("ready", ta.value.trim().length > 0);
     });
     const fire = () => {
       const text = ta.value.trim();
@@ -430,26 +452,19 @@
     };
     btn.addEventListener("click", fire);
     ta.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        fire();
-      }
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); fire(); }
     });
   }
   wireInput("input", "sendBtn");
   wireInput("inputBottom", "sendBtn2");
 
-  document.getElementById("newChatBtn").addEventListener("click", () => {
-    const chat = newChat();
-    state.chats.unshift(chat);
-    state.activeId = chat.id;
-    saveState();
-    renderAll();
-    togglePanel(false);
-  });
-
-  listBtn.addEventListener("click", () => togglePanel());
-  document.getElementById("searchBtn").addEventListener("click", () => togglePanel(true));
+  // Sidebar toggle + actions
+  document.getElementById("railToggleBtn").addEventListener("click", () => setSidebar(true));
+  document.getElementById("expToggleBtn").addEventListener("click", () => setSidebar(false));
+  document.getElementById("railSearchBtn").addEventListener("click", () => setSidebar(true));
+  document.getElementById("expSearchBtn").addEventListener("click", () => setSidebar(true));
+  document.getElementById("railNewChatBtn").addEventListener("click", startNewChat);
+  document.getElementById("newChatRow").addEventListener("click", startNewChat);
 
   renderAll();
 </script>
