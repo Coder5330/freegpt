@@ -151,6 +151,12 @@
     display: flex; align-items: center; gap: 6px; border: none; background: none;
     color: #8e8ea0; font-size: 14px; cursor: default; flex-shrink: 0; padding: 6px 4px;
   }
+  .modelSelect {
+    border: none; background: #f0f0f0; color: #444; font-size: 13px;
+    border-radius: 14px; padding: 6px 10px; cursor: pointer; flex-shrink: 0;
+    font-family: inherit; max-width: 140px;
+  }
+  .modelSelect:hover { background: #e7e7e7; }
   .sendBtn {
     width: 32px; height: 32px; border-radius: 50%; border: none;
     background: #b4b4bc; color: #fff; cursor: pointer; flex-shrink: 0;
@@ -220,7 +226,7 @@
           <div id="inputRow">
             <button class="plusBtn">+</button>
             <textarea id="input" rows="1" placeholder="Ask anything"></textarea>
-            <button class="thinkBtn">🧠 Think</button>
+            <select class="modelSelect model-picker" id="modelSelect"></select>
             <button class="sendBtn" id="sendBtn">↑</button>
           </div>
         </div>
@@ -233,7 +239,7 @@
           <div id="inputRowBottom">
             <button class="plusBtn">+</button>
             <textarea id="inputBottom" rows="1" placeholder="Ask anything"></textarea>
-            <button class="thinkBtn">🧠 Think</button>
+            <select class="modelSelect model-picker" id="modelSelectBottom"></select>
             <button class="sendBtn" id="sendBtn2">↑</button>
           </div>
         </div>
@@ -245,6 +251,55 @@
 <script>
   const SYSTEM_PROMPT = "You are a helpful assistant";
   const STORAGE_KEY = "gpt-chats-v1";
+  const MODEL_KEY = "gpt-chat-model";
+  const MODELS = ["gpt-6-sol", "gpt-5", "gpt-4o", "gpt-4o-mini", "o3-mini"];
+  const CUSTOM_VALUE = "__custom__";
+
+  function loadModel() {
+    try {
+      const saved = localStorage.getItem(MODEL_KEY);
+      if (saved) return saved;
+    } catch (e) { console.warn("Couldn't read saved model:", e); }
+    return MODELS[0];
+  }
+  function saveModel(model) {
+    try { localStorage.setItem(MODEL_KEY, model); }
+    catch (e) { console.warn("Couldn't save model:", e); }
+  }
+
+  let currentModel = loadModel();
+
+  function populateModelSelect(sel) {
+    sel.innerHTML = "";
+    const list = MODELS.includes(currentModel) ? MODELS : [currentModel, ...MODELS];
+    for (const m of list) {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m;
+      sel.appendChild(opt);
+    }
+    const customOpt = document.createElement("option");
+    customOpt.value = CUSTOM_VALUE;
+    customOpt.textContent = "Custom…";
+    sel.appendChild(customOpt);
+    sel.value = currentModel;
+  }
+
+  function handleModelChange(sel, otherSel) {
+    if (sel.value === CUSTOM_VALUE) {
+      const entered = prompt("Enter a model name:", currentModel);
+      if (entered && entered.trim()) {
+        currentModel = entered.trim();
+        saveModel(currentModel);
+      }
+      populateModelSelect(sel);
+      populateModelSelect(otherSel);
+      return;
+    }
+    currentModel = sel.value;
+    saveModel(currentModel);
+    otherSel.value = currentModel;
+  }
 
   function newChatObj() {
     return {
@@ -414,7 +469,7 @@
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: chat.messages }),
+        body: JSON.stringify({ messages: chat.messages, model: currentModel }),
       });
       const data = await res.json();
       hideThinking();
@@ -457,6 +512,13 @@
   }
   wireInput("input", "sendBtn");
   wireInput("inputBottom", "sendBtn2");
+
+  const modelSelect = document.getElementById("modelSelect");
+  const modelSelectBottom = document.getElementById("modelSelectBottom");
+  populateModelSelect(modelSelect);
+  populateModelSelect(modelSelectBottom);
+  modelSelect.addEventListener("change", () => handleModelChange(modelSelect, modelSelectBottom));
+  modelSelectBottom.addEventListener("change", () => handleModelChange(modelSelectBottom, modelSelect));
 
   // Sidebar toggle + actions
   document.getElementById("railToggleBtn").addEventListener("click", () => setSidebar(true));
