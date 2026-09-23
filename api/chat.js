@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages } = req.body;
+    const { messages, model } = req.body;
 
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-6-sol", // update if this model name changes on your account
+        model: model || "gpt-6-sol", // client-selected model, falls back to this default
         messages,
       }),
     });
