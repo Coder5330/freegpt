@@ -180,6 +180,26 @@
     font-family: inherit; max-width: 140px;
   }
   .modelSelect:hover { background: #e7e7e7; }
+  .attachments {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 0 4px 8px;
+  }
+  .attachments:empty { display: none; }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: #f0f0f0; border-radius: 14px; padding: 5px 10px 5px 10px;
+    font-size: 12.5px; color: #444; max-width: 200px;
+  }
+  .chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip button {
+    border: none; background: none; color: #8e8ea0; cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 0;
+  }
+  .chip button:hover { color: #e35d5d; }
+  .msgText img.attachedImg {
+    max-width: 260px; max-height: 260px; border-radius: 8px;
+    display: block; margin-top: 6px;
+  }
   .sendBtn {
     width: 32px; height: 32px; border-radius: 50%; border: none;
     background: #b4b4bc; color: #fff; cursor: pointer; flex-shrink: 0;
@@ -246,8 +266,9 @@
       <div id="centerStage">
         <div id="greeting">Ready when you are.</div>
         <div id="inputWrap">
+          <div class="attachments" id="attachmentsTop"></div>
           <div id="inputRow">
-            <button class="plusBtn">+</button>
+            <button class="plusBtn" id="plusBtnTop">+</button>
             <textarea id="input" rows="1" placeholder="Ask anything"></textarea>
             <select class="modelSelect model-picker" id="modelSelect"></select>
             <button class="sendBtn" id="sendBtn">↑</button>
@@ -259,8 +280,9 @@
 
       <div id="bottomInputArea">
         <div style="max-width:720px;margin:0 auto;">
+          <div class="attachments" id="attachmentsBottom"></div>
           <div id="inputRowBottom">
-            <button class="plusBtn">+</button>
+            <button class="plusBtn" id="plusBtnBottom">+</button>
             <textarea id="inputBottom" rows="1" placeholder="Ask anything"></textarea>
             <select class="modelSelect model-picker" id="modelSelectBottom"></select>
             <button class="sendBtn" id="sendBtn2">↑</button>
@@ -270,6 +292,8 @@
       </div>
     </div>
   </div>
+
+  <input type="file" id="fileInput" multiple style="display:none" accept="image/*,.txt,.md,.csv,.json,.js,.ts,.py,.html,.css,.log,.yaml,.yml" />
 
 <script>
   const SYSTEM_PROMPT = "You are a helpful assistant";
@@ -290,6 +314,84 @@
   }
 
   let currentModel = loadModel();
+  let pendingAttachments = []; // { kind: 'image'|'text', name, dataUrl?, text? }
+
+  const IMAGE_TYPES = /^image\//;
+  const fileInput = document.getElementById("fileInput");
+  const attachmentsTop = document.getElementById("attachmentsTop");
+  const attachmentsBottom = document.getElementById("attachmentsBottom");
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsText(file);
+    });
+  }
+
+  async function handleFilesSelected(fileList) {
+    for (const file of Array.from(fileList)) {
+      try {
+        if (IMAGE_TYPES.test(file.type)) {
+          const dataUrl = await readFileAsDataUrl(file);
+          pendingAttachments.push({ kind: "image", name: file.name, dataUrl });
+        } else {
+          const text = await readFileAsText(file);
+          pendingAttachments.push({ kind: "text", name: file.name, text });
+        }
+      } catch (e) {
+        console.warn("Couldn't read file", file.name, e);
+      }
+    }
+    renderAttachments();
+  }
+
+  function renderAttachments() {
+    for (const container of [attachmentsTop, attachmentsBottom]) {
+      container.innerHTML = "";
+      pendingAttachments.forEach((att, i) => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        const label = document.createElement("span");
+        label.textContent = (att.kind === "image" ? "🖼 " : "📄 ") + att.name;
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "✕";
+        removeBtn.addEventListener("click", () => {
+          pendingAttachments.splice(i, 1);
+          renderAttachments();
+        });
+        chip.appendChild(label);
+        chip.appendChild(removeBtn);
+        container.appendChild(chip);
+      });
+    }
+  }
+
+  function buildUserContent(text) {
+    if (pendingAttachments.length === 0) return text;
+    const parts = [];
+    if (text) parts.push({ type: "text", text });
+    for (const att of pendingAttachments) {
+      if (att.kind === "image") {
+        parts.push({ type: "image_url", image_url: { url: att.dataUrl } });
+      } else {
+        parts.push({
+          type: "text",
+          text: `File: ${att.name}\n\`\`\`\n${att.text}\n\`\`\``,
+        });
+      }
+    }
+    return parts;
+  }
 
   function populateModelSelect(sel) {
     sel.innerHTML = "";
@@ -360,6 +462,8 @@
       title.textContent = c.title;
       title.addEventListener("click", () => {
         state.activeId = c.id;
+        pendingAttachments = [];
+        renderAttachments();
         saveState();
         renderAll();
       });
@@ -397,7 +501,22 @@
     text.className = "msgText";
     if (isUser) {
       text.style.whiteSpace = "pre-wrap";
-      text.textContent = content;
+      if (Array.isArray(content)) {
+        for (const part of content) {
+          if (part.type === "text") {
+            const p = document.createElement("div");
+            p.textContent = part.text;
+            text.appendChild(p);
+          } else if (part.type === "image_url") {
+            const img = document.createElement("img");
+            img.className = "attachedImg";
+            img.src = part.image_url.url;
+            text.appendChild(img);
+          }
+        }
+      } else {
+        text.textContent = content;
+      }
     } else {
       text.innerHTML = renderMarkdown(content);
     }
@@ -452,6 +571,8 @@
     const chat = newChatObj();
     state.chats.unshift(chat);
     state.activeId = chat.id;
+    pendingAttachments = [];
+    renderAttachments();
     saveState();
     renderAll();
   }
@@ -462,12 +583,16 @@
   }
 
   async function sendMessage(text) {
-    if (!text) return;
+    if (!text && pendingAttachments.length === 0) return;
     const chat = getActiveChat();
-    chat.messages.push({ role: "user", content: text });
+    const content = buildUserContent(text);
+    chat.messages.push({ role: "user", content });
     if (chat.title === "New chat") {
-      chat.title = text.length > 30 ? text.slice(0, 30) + "…" : text;
+      const titleSource = text || pendingAttachments[0]?.name || "New chat";
+      chat.title = titleSource.length > 30 ? titleSource.slice(0, 30) + "…" : titleSource;
     }
+    pendingAttachments = [];
+    renderAttachments();
     saveState();
     renderAll();
 
@@ -551,7 +676,7 @@
     });
     const fire = () => {
       const text = ta.value.trim();
-      if (!text) return;
+      if (!text && pendingAttachments.length === 0) return;
       ta.value = "";
       autoResize(ta);
       btn.classList.remove("ready");
@@ -579,6 +704,13 @@
   document.getElementById("expSearchBtn").addEventListener("click", () => setSidebar(true));
   document.getElementById("railNewChatBtn").addEventListener("click", startNewChat);
   document.getElementById("newChatRow").addEventListener("click", startNewChat);
+
+  document.getElementById("plusBtnTop").addEventListener("click", () => fileInput.click());
+  document.getElementById("plusBtnBottom").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length) handleFilesSelected(fileInput.files);
+    fileInput.value = ""; // allow picking the same file again later
+  });
 
   renderAll();
 </script>
