@@ -1,7 +1,20 @@
 // Runs on Vercel's Edge Runtime so the response can stream token-by-token.
 export const config = { runtime: "edge" };
 
-const ALLOWED_MODELS = ["gpt-6-sol", "gpt-5", "gpt-4o", "gpt-4o-mini", "o3-mini"];
+const ALLOWED_MODELS = [
+  "gpt-6-astra",
+  "gpt-6-sol",
+  "gpt-6-luna",
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o3",
+  "o3-pro",
+  "o1",
+  "o3-mini",
+];
 const GENERATION_TIMEOUT_MS = 90000; // allow slower/reasoning-heavy replies
 const HEARTBEAT_MS = 8000; // how often to ping the client while waiting
 
