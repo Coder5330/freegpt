@@ -119,7 +119,7 @@
   }
   #greeting { font-size: 30px; color: #1e1e1e; margin-bottom: 28px; text-align: center; }
 
-  #messages { flex: 1; overflow-y: auto; display: none; }
+  #messages { flex: 1; overflow-y: auto; overflow-x: hidden; display: none; }
   .msgRow { padding: 22px 0; }
   .msgInner { max-width: 700px; margin: 0 auto; padding: 0 24px; display: flex; gap: 14px; align-items: flex-start; }
   .avatar {
@@ -129,7 +129,7 @@
   }
   .avatar.user { background: #6b6b76; }
   .avatar.bot { background: #10a37f; }
-  .msgText { line-height: 1.65; font-size: 15.5px; color: #1e1e1e; word-break: break-word; padding-top: 3px; }
+  .msgText { flex: 1; min-width: 0; line-height: 1.65; font-size: 15.5px; color: #1e1e1e; word-break: break-word; padding-top: 3px; }
   .msgText p { margin: 0 0 12px; white-space: pre-wrap; }
   .msgText p:last-child { margin-bottom: 0; }
   .msgText ul, .msgText ol { margin: 0 0 12px; padding-left: 22px; }
